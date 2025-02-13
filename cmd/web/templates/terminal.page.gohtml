@@ -7,15 +7,17 @@
 
   <hr/>
 
+  <div class="alert alert-danger text-center d-none" id="card_messages"></div>
+
   <form 
     action="/payment-succeeded" method="post" autocomplete="off"
-    name="charge_form" id="charge_form" 
+    name="charge-form" id="charge_form" 
     class="d-block needs-validation charge-form"
   >
     <div class="mb-3">
       <label for="amount" class="form-label">Amount</label>
       <input 
-        type="text" class="form-control" id="amount" name="amount" 
+        type="number" class="form-control" id="amount" name="amount" 
         required="" autocomplete="amount-new"
       />
     </div>
@@ -38,13 +40,20 @@
     <div class="mb-3">
       <label for="card-element" class="form-label">Card number</label>
       <div id="card-element" class="form-control"></div>
-      <div class="alert-danger text-center" id="card-errors" role="alert"> </div>
-      <div class="alert-success text-center" id="card=success" role="alert"></div>
+      <div class="alert alert-danger text-center d-none" id="card-errors" role="alert"> </div>
+      <div class="alert alert-success text-center d-none" id="card-success" role="alert"></div>
     </div>
 
     <hr/>
 
     <a id="pay-button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Charge Card</a>
+
+    <div id="payment_processing" class="d-none">
+      <div class="spinner-border text-primary">
+        <span class="visually-hidden">loading...</span>
+      </div>
+    </div>
+
   </form>
 {{end}}
 
@@ -54,29 +63,36 @@
   <script>
     let stripe
     let card
+    const cardMessages = document.getElementById("card_messages");
+    const paymentProcessing = document.getElementById("payment_processing");
+    const form = document.getElementById("charge_form");
 
-    stripe = Stripe("pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT")
+    stripe = Stripe("pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT");
 
     function val() {
-      console.log("charge card")
+      if (form.checkValidity() === false) {
+        this.event.preventDefault();
+        this.event.stopPropagation();
+      }
+      form.classList.add("was-validated");
     }
 
     (function() {
-      let elements = stripe.elements()
+      let elements = stripe.elements();
 
       const style = {
         base: {
           fontSize: "16px",
           lineHeight: "24px"
         }
-      }
+      };
 
       card = elements.create("card", {
         style,
         hidePostalCode: true
-      })
+      });
 
-      card.mount("#card-element")
+      card.mount("#card-element");
 
       card.addEventListener("change", function(event) {
         const errorElement = document.getElementById("card-errors");
