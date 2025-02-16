@@ -6,17 +6,17 @@ import (
 )
 
 type Card struct {
-	Key string
-	Secret string
+	Key      string
+	Secret   string
 	Currency string
 }
 
 type Transaction struct {
 	TransactionStatusID int
-	Amount int
-	Currency string
-	LastFour string
-	BankReturnCode string
+	Amount              int
+	Currency            string
+	LastFour            string
+	BankReturnCode      string
 }
 
 func (c *Card) ChargeCard(currency string, amount int) (*stripe.PaymentIntent, string, error) {
@@ -25,7 +25,7 @@ func (c *Card) ChargeCard(currency string, amount int) (*stripe.PaymentIntent, s
 
 func (c *Card) createPaymentIntent(currency string, amount int) (*stripe.PaymentIntent, string, error) {
 	params := &stripe.PaymentIntentParams{
-		Amount: stripe.Int64(int64(amount)),
+		Amount:   stripe.Int64(int64(amount)),
 		Currency: stripe.String(currency),
 	}
 
@@ -46,12 +46,12 @@ func (c *Card) createPaymentIntent(currency string, amount int) (*stripe.Payment
 }
 
 func getErrorMessageFromStripeStatusCode(code stripe.ErrorCode) string {
-	switch (code) {
-	case stripe.ErrorCodeCardDeclined: 
+	switch code {
+	case stripe.ErrorCodeCardDeclined:
 		return "Your card was declined"
-	case stripe.ErrorCodeExpiredCard: 
+	case stripe.ErrorCodeExpiredCard:
 		return "Your card has expired"
-	default: 
+	default:
 		return "Your bank's declined your payment request"
 	}
 }

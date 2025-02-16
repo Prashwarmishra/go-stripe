@@ -9,24 +9,23 @@ import (
 )
 
 type templateData struct {
-	StringMap map[string]string
-	IntMap map[string]int
-	FloatMap map[string]float64
-	Data map[string]any
-	Flash string
-	Warning string
-	Error string
-	CSRFToken string
+	StringMap       map[string]string
+	IntMap          map[string]int
+	FloatMap        map[string]float64
+	Data            map[string]any
+	Flash           string
+	Warning         string
+	Error           string
+	CSRFToken       string
 	IsAuthenticated int
-	API string
-	CSSVersion string
+	API             string
+	CSSVersion      string
 }
 
 var functions = template.FuncMap{}
 
 //go:embed templates
 var templatesFS embed.FS
-
 
 func (app *application) getDefaultTemplateData(td *templateData, r *http.Request) *templateData {
 	return td
@@ -40,7 +39,7 @@ func (app *application) renderTemplate(w http.ResponseWriter, r *http.Request, p
 
 	templateCache, inTemplateCache := app.templateCache[templateToRender]
 
-	if (inTemplateCache && app.config.env == "production") {
+	if inTemplateCache && app.config.env == "production" {
 		t = templateCache
 	} else {
 		t, err = app.parseTemplate(page, templateToRender, partials)
@@ -60,9 +59,9 @@ func (app *application) renderTemplate(w http.ResponseWriter, r *http.Request, p
 	err = t.Execute(w, td)
 
 	if err != nil {
-    app.errorLog.Println("error rendering template", err)
-    return err
-  }
+		app.errorLog.Println("error rendering template", err)
+		return err
+	}
 	return nil
 }
 
@@ -78,7 +77,7 @@ func (app *application) parseTemplate(page, templateToRender string, partials []
 		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templatesFS, "templates/base.layout.gohtml", strings.Join(partials, ","), templateToRender)
 	} else {
 		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templatesFS, "templates/base.layout.gohtml", templateToRender)
-		
+
 	}
 
 	if err != nil {
