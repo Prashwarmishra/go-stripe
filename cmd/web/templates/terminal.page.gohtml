@@ -54,6 +54,11 @@
       </div>
     </div>
 
+    <input type="hidden" id="payment_intent" />
+    <input type="hidden" id="payment_intent_method" />
+    <input type="hidden" id="payment_intent_amount" />
+    <input type="hidden" id="payment_intent_currency" />
+
   </form>
 {{end}}
 
@@ -70,15 +75,87 @@
 
     stripe = Stripe("pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT");
 
+    function hidePaymentButton() {
+      payButton.classList.add("d-none");
+      paymentProcessing.classList.remove("d-none");
+    }
+
+    function showPaymentButton() {
+      payButton.classList.remove("d-none");
+      paymentProcessing.classList.add("d-none");
+    }
+
+    function showCardError(errorMessage) {
+      cardMessages.classList.remove("d-none")
+      cardMessages.classList.remove("alert-success")
+      cardMessages.classList.add("alert-danger")
+      cardMessages.textContent = errorMessage
+    }
+
+    function showCardSuccess() {
+      cardMessages.classList.remove("d-none")
+      cardMessages.classList.add("alert-success")
+      cardMessages.classList.remove("alert-danger")
+      cardMessages.textContent = "Payment processed successfully!"
+    }
+
+
     function val() {
+      form.classList.add("was-validated");
       if (form.checkValidity() === false) {
         this.event.preventDefault();
         this.event.stopPropagation();
-      } else {
-        payButton.classList.add("d-none");
-        paymentProcessing.classList.remove("d-none");
+        return;
       }
-      form.classList.add("was-validated");
+      hidePaymentButton()
+      const body = {
+        amount: String(parseFloat(document.getElementById("amount").value) * 100),
+        currency: "cad"
+      }
+
+      const requestOptions = {
+        method: "post",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      }
+
+      fetch("http://localhost:4001/api/payment-intent", requestOptions)
+        .then((res) => res.text())
+        .then((data) => {
+          let request
+          try {
+            request = JSON.parse(data)
+            console.log("request", request)
+            stripe.confirmCardPayment(request.client_secret, {
+              payment_method: {
+                card,
+                billing_details: {
+                  name: document.getElementById("cardholder_name").value
+                }
+              }
+            }).then((result) => {
+              const paymentIntent = result.paymentIntent;
+              if (paymentIntent.status === "succeeded") {
+                document.getElementById("payment_intent").value = paymentIntent.id;
+                document.getElementById("payment_intent_method").value = paymentIntent.payment_method_types[0];
+                document.getElementById("payment_intent_amount").value = paymentIntent.amount;
+                document.getElementById("payment_intent_currency").value = paymentIntent.currency;
+                paymentProcessing.classList.add("d-none");
+                showCardSuccess()
+              } else if (result.error) {
+                showCardError(response.error.message);
+                showPaymentButton();
+              }
+            })
+
+          } catch (error) {
+            showCardError("Invalid response from payment gateway!")
+            showPaymentButton()
+          }
+        })
     }
 
     (function() {

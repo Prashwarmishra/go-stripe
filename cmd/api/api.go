@@ -52,8 +52,11 @@ func main() {
 
 	flag.Parse()
 
-	cfg.stripe.key = os.Getenv("STRIPE_KEY")
-	cfg.stripe.secret = os.Getenv("STRIPE_SECRET")
+	// cfg.stripe.key = os.Getenv("STRIPE_KEY")
+	// cfg.stripe.secret = os.Getenv("STRIPE_SECRET")
+
+	cfg.stripe.key = "pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT"
+	cfg.stripe.secret = "sk_test_51QqX3TLNGyaF79S20fYOTYJRUcghafnpPpiz7zfmyoYafFuh9lf1ufIBRBLxda0DyYaTdALCeY5ESmDl59pg8zkH00ReJa86RT"
 
 	app := &application{
 		config:   cfg,
