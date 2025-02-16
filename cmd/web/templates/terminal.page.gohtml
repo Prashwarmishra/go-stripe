@@ -46,9 +46,9 @@
 
     <hr/>
 
-    <a id="pay-button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Charge Card</a>
+    <a id="pay_button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Charge Card</a>
 
-    <div id="payment_processing" class="d-none">
+    <div id="payment_processing" class="d-none text-center">
       <div class="spinner-border text-primary">
         <span class="visually-hidden">loading...</span>
       </div>
@@ -64,6 +64,7 @@
     let stripe
     let card
     const cardMessages = document.getElementById("card_messages");
+    const payButton = document.getElementById("pay_button");
     const paymentProcessing = document.getElementById("payment_processing");
     const form = document.getElementById("charge_form");
 
@@ -73,6 +74,9 @@
       if (form.checkValidity() === false) {
         this.event.preventDefault();
         this.event.stopPropagation();
+      } else {
+        payButton.classList.add("d-none");
+        paymentProcessing.classList.remove("d-none");
       }
       form.classList.add("was-validated");
     }
