@@ -73,7 +73,7 @@
     const paymentProcessing = document.getElementById("payment_processing");
     const form = document.getElementById("charge_form");
 
-    stripe = Stripe("pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT");
+    stripe = Stripe("{{index .StringMap "stripe_key"}}");
 
     function hidePaymentButton() {
       payButton.classList.add("d-none");
@@ -122,13 +122,12 @@
         body: JSON.stringify(body)
       }
 
-      fetch("http://localhost:4001/api/payment-intent", requestOptions)
+      fetch("{{.API}}/api/payment-intent", requestOptions)
         .then((res) => res.text())
         .then((data) => {
           let request
           try {
             request = JSON.parse(data)
-            console.log("request", request)
             stripe.confirmCardPayment(request.client_secret, {
               payment_method: {
                 card,

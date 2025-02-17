@@ -3,7 +3,14 @@ package main
 import "net/http"
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.renderTemplate(w, r, "terminal", nil)
+	stringMap := map[string]string{
+		"stripe_key": app.config.stripe.key,
+	}
+
+	err := app.renderTemplate(w, r, "terminal", &templateData{
+		API:       app.config.api,
+		StringMap: stringMap,
+	})
 
 	if err != nil {
 		app.errorLog.Println(err)
