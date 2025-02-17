@@ -54,10 +54,10 @@
       </div>
     </div>
 
-    <input type="hidden" id="payment_intent" />
-    <input type="hidden" id="payment_intent_method" />
-    <input type="hidden" id="payment_intent_amount" />
-    <input type="hidden" id="payment_intent_currency" />
+    <input type="hidden" name="payment-intent" id="payment_intent" />
+    <input type="hidden" name="payment-intent-method" id="payment_intent_method" />
+    <input type="hidden" name="payment-intent-amount" id="payment_intent_amount" />
+    <input type="hidden" name="payment-intent-currency" id="payment_intent_currency" />
 
   </form>
 {{end}}
@@ -145,6 +145,7 @@
                 document.getElementById("payment_intent_currency").value = paymentIntent.currency;
                 paymentProcessing.classList.add("d-none");
                 showCardSuccess()
+                form.submit();
               } else if (result.error) {
                 showCardError(response.error.message);
                 showPaymentButton();
