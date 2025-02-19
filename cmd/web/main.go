@@ -8,6 +8,8 @@ import (
 	"os"
 	"text/template"
 	"time"
+
+	"github.com/go-stripe/internal/driver"
 )
 
 const version = "v1"
@@ -55,6 +57,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "define port")
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "define api endpoint")
 	flag.StringVar(&cfg.env, "env", "development", "define env{development|production}")
+	flag.StringVar(&cfg.db.dsn, "dsn", "prashwarm:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "define dsn")
 
 	flag.Parse()
 
@@ -69,7 +72,16 @@ func main() {
 		version:       version,
 	}
 
-	err := app.serve()
+	dbConnection, err := driver.OpenDB(app.config.db.dsn)
+
+	if err != nil {
+		app.errorLog.Fatal("Failed to connect to the database", err)
+		return
+	}
+
+	defer dbConnection.Close()
+
+	err = app.serve()
 
 	if err != nil {
 		app.errorLog.Panic("error starting server", err)
