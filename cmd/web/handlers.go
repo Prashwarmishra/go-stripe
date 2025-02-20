@@ -42,3 +42,12 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 }
+
+func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request) {
+	err := app.renderTemplate(w, r, "buy", nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+}
