@@ -7,14 +7,7 @@ import (
 )
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
-	stringMap := map[string]string{
-		"stripe_key": app.config.stripe.key,
-	}
-
-	err := app.renderTemplate(w, r, "terminal", &templateData{
-		API:       app.config.api,
-		StringMap: stringMap,
-	}, "stripe-js")
+	err := app.renderTemplate(w, r, "terminal", nil, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)

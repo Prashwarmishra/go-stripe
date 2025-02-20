@@ -12,7 +12,7 @@
 
   <img src="/static/widget.png" class="image-fluid mx-auto rounded d-block" alt="widget-image" />
 
-  <h2 class="mb-3 text-center">{{$widget.Name}} {{$widget.Price}}</h2>
+  <h2 class="mb-3 text-center">{{$widget.Name}} {{formatCurrency $widget.Price}}</h2>
   <p>{{$widget.Description}}</p>
 
   <hr />

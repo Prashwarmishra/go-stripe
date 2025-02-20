@@ -9,7 +9,7 @@
     const paymentProcessing = document.getElementById("payment_processing");
     const form = document.getElementById("charge_form");
 
-    stripe = Stripe("{{index .StringMap "stripe_key"}}");
+    stripe = Stripe("{{.StripeKey}}");
 
     function hidePaymentButton() {
       payButton.classList.add("d-none");
