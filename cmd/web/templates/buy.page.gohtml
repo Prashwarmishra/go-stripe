@@ -5,11 +5,17 @@
 {{end}}
 
 {{define "content"}}
+  {{$widget := index .Data "widget"}}
   <h2 class="mt-3 text-center">Buy widget</h2>
 
   <hr />
 
   <img src="/static/widget.png" class="image-fluid mx-auto rounded d-block" alt="widget-image" />
+
+  <h2 class="mb-3 text-center">{{$widget.Name}} {{$widget.Price}}</h2>
+  <p>{{$widget.Description}}</p>
+
+  <hr />
 
   <div class="alert alert-danger text-center d-none" id="card_messages"></div>
 
@@ -18,13 +24,8 @@
     name="charge-form" id="charge_form" 
     class="d-block needs-validation charge-form"
   >
-    <div class="mb-3">
-      <label for="amount" class="form-label">Amount</label>
-      <input 
-        type="number" class="form-control" id="amount" name="amount" 
-        required="" autocomplete="amount-new"
-      />
-    </div>
+    <input type="hidden" id="widget_id" value="{{$widget.ID}}" />
+    <input type="hidden" id="amount" value="{{$widget.Price}}" />
 
     <div class="mb-3">
       <label for="cardholder_name" class="form-label">Cardholder name</label>

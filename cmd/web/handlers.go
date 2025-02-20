@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/go-stripe/internal/models"
+)
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
 	stringMap := map[string]string{
@@ -44,7 +48,23 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.renderTemplate(w, r, "buy", nil, "stripe-js")
+	widget := models.Widget{
+		ID:             1,
+		Name:           "Custom Widget",
+		Description:    "A very nice widget",
+		Price:          1000,
+		InventoryLevel: 10,
+	}
+
+	data := map[string]any{
+		"widget": widget,
+	}
+
+	td := templateData{
+		Data: data,
+	}
+
+	err := app.renderTemplate(w, r, "buy", &td, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)
