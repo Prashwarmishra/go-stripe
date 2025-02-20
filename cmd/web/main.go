@@ -57,7 +57,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "define port")
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "define api endpoint")
 	flag.StringVar(&cfg.env, "env", "development", "define env{development|production}")
-	flag.StringVar(&cfg.db.dsn, "dsn", "prashwarm:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "define dsn")
+	flag.StringVar(&cfg.db.dsn, "dsn", "root:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "define dsn")
 
 	flag.Parse()
 

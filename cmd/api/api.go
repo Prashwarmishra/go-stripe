@@ -51,7 +51,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4001, "define port to run backend server")
 	flag.StringVar(&cfg.env, "env", "development", "define environment to run server {production|staging|maintainance}")
-	flag.StringVar(&cfg.db.dsn, "dsn", "prashwarm:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "define dsn")
+	flag.StringVar(&cfg.db.dsn, "dsn", "root:secret@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "define dsn")
 
 	flag.Parse()
 
