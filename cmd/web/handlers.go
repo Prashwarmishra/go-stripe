@@ -10,7 +10,7 @@ func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Re
 	err := app.renderTemplate(w, r, "terminal", &templateData{
 		API:       app.config.api,
 		StringMap: stringMap,
-	})
+	}, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -44,7 +44,7 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.renderTemplate(w, r, "buy", nil)
+	err := app.renderTemplate(w, r, "buy", nil, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)
