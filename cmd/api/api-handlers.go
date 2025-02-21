@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	cards "github.com/go-stripe/internal/cards"
 )
 
@@ -63,5 +64,33 @@ func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
+}
+
+func (app *application) GetWidgetHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		app.errorLog.Println("invalid widget id", err)
+		return
+	}
+
+	widget, err := app.DBModel.GetWidget(id)
+
+	if err != nil {
+		app.errorLog.Println("failed to get widget from database", err)
+		return
+	}
+
+	json, err := json.MarshalIndent(widget, "", "  ")
+
+	if err != nil {
+		app.errorLog.Println("failed to marshal widget json", err)
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
 	w.Write(json)
 }

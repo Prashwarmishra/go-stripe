@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-stripe/internal/driver"
+	"github.com/go-stripe/internal/models"
 )
 
 const version = "v1"
@@ -34,6 +35,7 @@ type application struct {
 	errorLog      log.Logger
 	templateCache map[string]*template.Template
 	version       string
+	DBModel       models.DBModel
 }
 
 func (app *application) serve() error {
@@ -73,6 +75,10 @@ func main() {
 	}
 
 	dbConnection, err := driver.OpenDB(app.config.db.dsn)
+
+	app.DBModel = models.DBModel{
+		DB: dbConnection,
+	}
 
 	if err != nil {
 		app.errorLog.Fatal("Failed to connect to the database", err)
