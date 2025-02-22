@@ -17,8 +17,8 @@
     <div class="mb-3">
       <label for="amount" class="form-label">Amount</label>
       <input 
-        type="number" class="form-control" id="amount" name="amount" 
-        required="" autocomplete="amount-new"
+        type="number" class="form-control" id="charge_amount" name="charge-amount" 
+        required="" autocomplete="charge-amount-new"
       />
     </div>
 
@@ -54,6 +54,7 @@
       </div>
     </div>
 
+    <input type="hidden" name="amount" id="amount" />
     <input type="hidden" name="payment-intent" id="payment_intent" />
     <input type="hidden" name="payment-intent-method" id="payment_intent_method" />
     <input type="hidden" name="payment-intent-amount" id="payment_intent_amount" />
@@ -63,5 +64,11 @@
 {{end}}
 
 {{define "js"}} 
+  <script>
+    const chargeAmount = document.getElementById("charge_amount");
+    const amount = document.getElementById("amount");
+    chargeAmount.addEventListener("change", (e) => amount.value = e.target.value * 100)
+  </script>
+
   {{template "stripe-js" .}}
 {{end}}

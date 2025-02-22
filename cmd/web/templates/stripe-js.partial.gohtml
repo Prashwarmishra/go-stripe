@@ -45,7 +45,7 @@
       }
       hidePaymentButton()
       const body = {
-        amount: String(parseFloat(document.getElementById("amount").value) * 100),
+        amount: document.getElementById("amount").value,
         currency: "cad"
       }
 
