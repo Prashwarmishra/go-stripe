@@ -2,7 +2,7 @@
 {{define "title"}} Payment Confirmation {{end}}
 
 {{define "content"}}
-  <h2 class="mt-5">Payment Success</h2>
+  <h2 class="mt-5 text-center">Payment Success</h2>
   <hr />
   <p>Transaction id: {{index .Data "paymentIntent"}}</p>
   <p>Cardholder name: {{index .Data "cardholderName"}}</p>
@@ -10,4 +10,7 @@
   <p>Amount: {{index .Data "amount"}}</p>
   <p>Currency: {{index .Data "currency"}}</p>
   <p>Payment method: {{index .Data "paymentMethod"}}</p>
+  <p>Card number: xxxx-xxxx-{{index .Data "lastFour"}}</p>
+  <p>Card expiry: {{index .Data "expiryMonth"}}/{{index .Data "expiryYear"}}</p>
+  <p>Bank return code: {{index .Data "bankReturnCode"}}</p>
 {{end}}

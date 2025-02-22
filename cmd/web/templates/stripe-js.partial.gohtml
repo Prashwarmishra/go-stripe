@@ -75,7 +75,7 @@
               const paymentIntent = result.paymentIntent;
               if (paymentIntent.status === "succeeded") {
                 document.getElementById("payment_intent").value = paymentIntent.id;
-                document.getElementById("payment_intent_method").value = paymentIntent.payment_method_types[0];
+                document.getElementById("payment_intent_method").value = paymentIntent.payment_method;
                 document.getElementById("payment_intent_amount").value = paymentIntent.amount;
                 document.getElementById("payment_intent_currency").value = paymentIntent.currency;
                 paymentProcessing.classList.add("d-none");

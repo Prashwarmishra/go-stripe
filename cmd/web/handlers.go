@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-stripe/internal/cards"
 )
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,14 +25,40 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	paymentIntentId := r.Form.Get("payment-intent")
+	paymentMethodId := r.Form.Get("payment-intent-method")
 	data := map[string]any{
 		"cardholderName":  r.Form.Get("cardholder-name"),
 		"cardholderEmail": r.Form.Get("cardholder-email"),
 		"amount":          r.Form.Get("payment-intent-amount"),
 		"currency":        r.Form.Get("payment-intent-currency"),
-		"paymentMethod":   r.Form.Get("payment-intent-method"),
-		"paymentIntent":   r.Form.Get("payment-intent"),
+		"paymentMethod":   paymentMethodId,
+		"paymentIntent":   paymentIntentId,
 	}
+
+	card := cards.Card{
+		Key:    app.config.stripe.key,
+		Secret: app.config.stripe.secret,
+	}
+
+	paymentMethod, err := card.GetPaymentMethod(paymentMethodId)
+
+	if err != nil {
+		app.errorLog.Println("failed to fetch payment method", err)
+		return
+	}
+
+	paymentIntent, err := card.RetrievePaymentIntent(paymentIntentId)
+
+	if err != nil {
+		app.errorLog.Println("failed to fetch payment intent", err)
+		return
+	}
+
+	data["lastFour"] = paymentMethod.Card.Last4
+	data["expiryMonth"] = paymentMethod.Card.ExpMonth
+	data["expiryYear"] = paymentMethod.Card.ExpYear
+	data["bankReturnCode"] = paymentIntent.Charges.Data[0].ID
 
 	err = app.renderTemplate(w, r, "succeeded", &templateData{Data: data})
 
