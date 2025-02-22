@@ -2,8 +2,9 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/go-stripe/internal/models"
+	"github.com/go-chi/chi/v5"
 )
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,12 +42,20 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request) {
-	widget := models.Widget{
-		ID:             1,
-		Name:           "Custom Widget",
-		Description:    "A very nice widget",
-		Price:          1000,
-		InventoryLevel: 10,
+	idParam := chi.URLParam(r, "id")
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		app.errorLog.Println("invalid widget id", err)
+		return
+	}
+
+	widget, err := app.DBModel.GetWidget(id)
+
+	if err != nil {
+		app.errorLog.Println("failed to get widget", err)
+		return
 	}
 
 	data := map[string]any{
@@ -57,7 +66,7 @@ func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request)
 		Data: data,
 	}
 
-	err := app.renderTemplate(w, r, "buy", &td, "stripe-js")
+	err = app.renderTemplate(w, r, "buy", &td, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)

@@ -27,9 +27,9 @@ type Widget struct {
 
 type Orders struct {
 	ID            int    `json:"id"`
-	WidgetId      int    `json:"widget_id"`
-	TransactionId int    `json:"transaction_id"`
-	StatusId      int    `json:"status_id"`
+	WidgetID      int    `json:"widget_id"`
+	TransactionID int    `json:"transaction_id"`
+	StatusID      int    `json:"status_id"`
 	Quantity      int    `json:"quantity"`
 	CreatedAt     string `json:"-"`
 	UpdatedAt     string `json:"-"`
@@ -55,7 +55,7 @@ type Transaction struct {
 	Currency            string `json:"currency"`
 	LastFour            string `json:"last_four"`
 	BankReturnCode      string `json:"bank_return_code"`
-	TransactionStatusId int    `json:"transaction_status_id"`
+	TransactionStatusID int    `json:"transaction_status_id"`
 	CreatedAt           string `json:"-"`
 	UpdatedAt           string `json:"-"`
 }
@@ -75,8 +75,18 @@ func (m *DBModel) GetWidget(id int) (Widget, error) {
 
 	defer cancel()
 
-	row := m.DB.QueryRowContext(ctx, "SELECT id, name FROM widgets WHERE id = ?", id)
+	row := m.DB.QueryRowContext(ctx, `
+		SELECT 
+			id, name, description, coalesce(image, ''),
+			inventory_level, price, created_at, 
+			updated_at 
+		FROM widgets 
+		WHERE id = ?`, id)
 	widget := Widget{}
-	err := row.Scan(&widget.ID, &widget.Name)
+
+	err := row.Scan(&widget.ID, &widget.Name,
+		&widget.Description, &widget.Image, &widget.InventoryLevel,
+		&widget.Price, &widget.CreatedAt, &widget.UpdatedAt)
+
 	return widget, err
 }
