@@ -8,12 +8,19 @@ import (
 	"github.com/go-stripe/internal/cards"
 )
 
+func (app *application) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	err := app.renderTemplate(w, r, "home", nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.renderTemplate(w, r, "terminal", nil, "stripe-js")
 
 	if err != nil {
 		app.errorLog.Println(err)
-		return
 	}
 }
 
