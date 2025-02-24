@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"log"
@@ -58,6 +59,7 @@ func (app *application) serve() error {
 }
 
 func main() {
+	gob.Register(map[string]any{})
 	var cfg config
 
 	flag.IntVar(&cfg.port, "port", 4000, "define port")

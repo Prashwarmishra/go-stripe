@@ -118,7 +118,15 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 
 	app.infoLog.Println("orderId", orderId)
 
-	err = app.renderTemplate(w, r, "succeeded", &templateData{Data: data})
+	app.Session.Put(r.Context(), "receipt", data)
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
+}
+
+func (app *application) ReceiptHandler(w http.ResponseWriter, r *http.Request) {
+	data := app.Session.Get(r.Context(), "receipt").(map[string]any)
+	app.Session.Remove(r.Context(), "receipt")
+
+	err := app.renderTemplate(w, r, "receipt", &templateData{Data: data})
 
 	if err != nil {
 		app.errorLog.Println(err)
