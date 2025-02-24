@@ -158,3 +158,27 @@ func (m *DBModel) InsertOrder(order Order) (int, error) {
 
 	return int(id), nil
 }
+
+func (m *DBModel) InsertCustomer(customer Customer) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+
+	defer cancel()
+
+	stmt := `INSERT INTO customers (
+		first_name, last_name, email, created_at, updated_at
+	) VALUES (?, ?, ?, ?, ?)`
+
+	result, err := m.DB.ExecContext(ctx, stmt, customer.FirstName, customer.LastName, customer.Email, time.Now(), time.Now())
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
+}
