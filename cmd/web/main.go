@@ -59,7 +59,7 @@ func (app *application) serve() error {
 }
 
 func main() {
-	gob.Register(map[string]any{})
+	gob.Register(TransactionData{})
 	var cfg config
 
 	flag.IntVar(&cfg.port, "port", 4000, "define port")

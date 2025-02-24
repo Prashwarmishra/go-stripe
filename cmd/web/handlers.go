@@ -9,6 +9,21 @@ import (
 	"github.com/go-stripe/internal/models"
 )
 
+type TransactionData struct {
+	FirstName       string
+	LastName        string
+	CardholderName  string
+	CardholderEmail string
+	PaymentAmount   int
+	Currency        string
+	PaymentIntent   string
+	PaymentMethod   string
+	LastFour        string
+	ExpiryMonth     int
+	ExpiryYear      int
+	BankReturnCode  string
+}
+
 func (app *application) HomeHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.renderTemplate(w, r, "home", nil)
 
@@ -25,12 +40,12 @@ func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) GetTransactionData(r *http.Request) (*TransactionData, error) {
 	err := r.ParseForm()
 
 	if err != nil {
 		app.errorLog.Println(err)
-		return
+		return nil, err
 	}
 
 	cardholderName := r.Form.Get("cardholder-name")
@@ -41,16 +56,6 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 	currency := r.Form.Get("payment-intent-currency")
 	paymentIntentId := r.Form.Get("payment-intent")
 	paymentMethodId := r.Form.Get("payment-intent-method")
-	widgetIdStr := r.Form.Get("widget-id")
-
-	data := map[string]any{
-		"cardholderName":  cardholderName,
-		"cardholderEmail": cardholderEmail,
-		"amount":          amount,
-		"currency":        currency,
-		"paymentMethod":   paymentMethodId,
-		"paymentIntent":   paymentIntentId,
-	}
 
 	card := cards.Card{
 		Key:    app.config.stripe.key,
@@ -61,14 +66,14 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		app.errorLog.Println("failed to fetch payment method", err)
-		return
+		return nil, err
 	}
 
 	paymentIntent, err := card.RetrievePaymentIntent(paymentIntentId)
 
 	if err != nil {
 		app.errorLog.Println("failed to fetch payment intent", err)
-		return
+		return nil, err
 	}
 
 	lastFour := paymentMethod.Card.Last4
@@ -76,26 +81,49 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 	expiryYear := paymentMethod.Card.ExpYear
 	bankReturnCode := paymentIntent.Charges.Data[0].ID
 
-	data["lastFour"] = lastFour
-	data["expiryMonth"] = expiryMonth
-	data["expiryYear"] = expiryYear
-	data["bankReturnCode"] = bankReturnCode
-
-	customerId, err := app.SaveCustomer(firstName, lastName, cardholderEmail)
-
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
-
 	paymentAmount, err := strconv.Atoi(amount)
 
 	if err != nil {
 		app.errorLog.Println(err)
+		return nil, err
+	}
+
+	txnData := TransactionData{
+		FirstName:       firstName,
+		LastName:        lastName,
+		CardholderName:  cardholderName,
+		CardholderEmail: cardholderEmail,
+		PaymentAmount:   paymentAmount,
+		Currency:        currency,
+		PaymentIntent:   paymentIntentId,
+		PaymentMethod:   paymentMethodId,
+		LastFour:        lastFour,
+		ExpiryMonth:     int(expiryMonth),
+		ExpiryYear:      int(expiryYear),
+		BankReturnCode:  bankReturnCode,
+	}
+
+	return &txnData, nil
+}
+
+func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.Request) {
+	txnData, err := app.GetTransactionData(r)
+
+	if err != nil {
+		app.errorLog.Println(err)
 		return
 	}
 
-	transactionId, err := app.SaveTransaction(paymentAmount, int(expiryMonth), int(expiryYear), paymentIntentId, paymentMethodId, currency, lastFour, bankReturnCode)
+	widgetIdStr := r.Form.Get("widget-id")
+
+	customerId, err := app.SaveCustomer(txnData.FirstName, txnData.LastName, txnData.CardholderEmail)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	transactionId, err := app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth, txnData.ExpiryYear, txnData.PaymentIntent, txnData.PaymentMethod, txnData.Currency, txnData.LastFour, txnData.BankReturnCode)
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -109,7 +137,7 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	orderId, err := app.SaveOrder(widgetId, transactionId, customerId, paymentAmount)
+	orderId, err := app.SaveOrder(widgetId, transactionId, customerId, txnData.PaymentAmount)
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -118,13 +146,17 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 
 	app.infoLog.Println("orderId", orderId)
 
-	app.Session.Put(r.Context(), "receipt", data)
+	app.Session.Put(r.Context(), "receipt", txnData)
 	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
 }
 
 func (app *application) ReceiptHandler(w http.ResponseWriter, r *http.Request) {
-	data := app.Session.Get(r.Context(), "receipt").(map[string]any)
+	txn := app.Session.Get(r.Context(), "receipt").(TransactionData)
 	app.Session.Remove(r.Context(), "receipt")
+
+	data := map[string]any{
+		"txn": txn,
+	}
 
 	err := app.renderTemplate(w, r, "receipt", &templateData{Data: data})
 
