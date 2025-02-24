@@ -1,0 +1,18 @@
+{{template "base" .}}
+{{define "title"}} Payment Confirmation {{end}}
+
+{{define "content"}}
+  {{$txn := index .Data "txn"}}
+
+  <h2 class="mt-5 text-center">Virtual Terminal Payment Success</h2>
+  <hr />
+  <p>Transaction id: {{$txn.PaymentIntent}}</p>
+  <p>Cardholder name: {{$txn.CardholderName}}</p>
+  <p>Cardholder email: {{$txn.CardholderEmail}}</p>
+  <p>Amount: {{$txn.PaymentAmount}}</p>
+  <p>Currency: {{$txn.Currency}}</p>
+  <p>Payment method: {{$txn.PaymentMethod}}</p>
+  <p>Card number: xxxx-xxxx-{{$txn.LastFour}}</p>
+  <p>Card expiry: {{$txn.ExpiryMonth}}/{{$txn.ExpiryYear}}</p>
+  <p>Bank return code: {{$txn.BankReturnCode}}</p>
+{{end}}

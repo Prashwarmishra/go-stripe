@@ -10,15 +10,31 @@
   <div class="alert alert-danger text-center d-none" id="card_messages"></div>
 
   <form 
-    action="/payment-succeeded" method="post" autocomplete="off"
+    action="/virtual-terminal-payment-succeeded" method="post" autocomplete="off"
     name="charge-form" id="charge_form" 
     class="d-block needs-validation charge-form"
   >
     <div class="mb-3">
-      <label for="amount" class="form-label">Amount</label>
+      <label for="charge_amount" class="form-label">Amount</label>
       <input 
         type="number" class="form-control" id="charge_amount" name="charge-amount" 
         required="" autocomplete="charge-amount-new"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="first_name" class="form-label">First name</label>
+      <input 
+        type="text" class="form-control" id="first_name" name="first-name"
+        required="" autocomplete="first-name-new"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="last_name" class="form-label">Last name</label>
+      <input 
+        type="text" class="form-control" id="last_name" name="last-name"
+        required="" autocomplete="last-name-new"
       />
     </div>
 
@@ -67,7 +83,7 @@
   <script>
     const chargeAmount = document.getElementById("charge_amount");
     const amount = document.getElementById("amount");
-    chargeAmount.addEventListener("change", (e) => amount.value = e.target.value * 100)
+    chargeAmount.addEventListener("change", (e) => amount.value = parseInt(e.target.value * 100, 10))
   </script>
 
   {{template "stripe-js" .}}

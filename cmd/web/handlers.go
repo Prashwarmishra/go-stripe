@@ -166,6 +166,46 @@ func (app *application) ReceiptHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *application) VirtualTerminalPaymentSucceededHandler(w http.ResponseWriter, r *http.Request) {
+	txnData, err := app.GetTransactionData(r)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	_, err = app.SaveCustomer(txnData.FirstName, txnData.LastName, txnData.CardholderEmail)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	_, err = app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth, txnData.ExpiryYear, txnData.PaymentIntent, txnData.PaymentMethod, txnData.Currency, txnData.LastFour, txnData.BankReturnCode)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	app.Session.Put(r.Context(), "receipt", txnData)
+	http.Redirect(w, r, "/virtual-terminal-receipt", http.StatusSeeOther)
+}
+
+func (app *application) VirtualTerminalReceiptHandler(w http.ResponseWriter, r *http.Request) {
+	txn := app.Session.Get(r.Context(), "receipt")
+	app.Session.Remove(r.Context(), "receipt")
+	data := map[string]any{
+		"txn": txn,
+	}
+
+	err := app.renderTemplate(w, r, "virtual-terminal-receipt", &templateData{Data: data})
+
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
 func (app *application) BuyWidgetHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 
