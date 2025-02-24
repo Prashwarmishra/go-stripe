@@ -32,6 +32,7 @@ type Order struct {
 	StatusID      int    `json:"status_id"`
 	CustomerID    int    `json:"customer_id"`
 	Quantity      int    `json:"quantity"`
+	Amount        int    `json:"amount"`
 	CreatedAt     string `json:"-"`
 	UpdatedAt     string `json:"-"`
 }
@@ -59,6 +60,8 @@ type Transaction struct {
 	TransactionStatusID int    `json:"transaction_status_id"`
 	ExpiryMonth         int    `json:"expiry_month"`
 	ExpiryYear          int    `json:"expiry_year"`
+	PaymentIntent       string `json:"payment_intent"`
+	PaymentMethod       string `json:"payment_method"`
 	CreatedAt           string `json:"-"`
 	UpdatedAt           string `json:"-"`
 }
@@ -111,12 +114,16 @@ func (m *DBModel) InsertTransaction(txn Transaction) (int, error) {
 	stmt := `INSERT INTO transactions (
 		amount, currency, last_four, 
 		bank_return_code, transaction_status_id,
+		expiry_month, expiry_year,
+		payment_intent, payment_method,
 		created_at, updated_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	result, err := m.DB.ExecContext(ctx, stmt,
 		txn.Amount, txn.Currency, txn.LastFour,
 		txn.BankReturnCode, txn.TransactionStatusID,
+		txn.ExpiryMonth, txn.ExpiryYear,
+		txn.PaymentIntent, txn.PaymentMethod,
 		time.Now(), time.Now())
 
 	if err != nil {
@@ -137,14 +144,14 @@ func (m *DBModel) InsertOrder(order Order) (int, error) {
 
 	defer cancel()
 
-	stmt := `INSERT INTO orders VALUES (
-		id, widget_id, transaction_id, status_id, 
-		quantity, created_at, updated_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	stmt := `INSERT INTO orders (
+		widget_id, transaction_id, status_id, 
+		customer_id, quantity, amount, created_at, updated_at
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	result, err := m.DB.ExecContext(ctx, stmt,
 		order.WidgetID, order.TransactionID, order.StatusID,
-		order.Quantity, time.Now(), time.Now())
+		order.CustomerID, order.Quantity, order.Amount, time.Now(), time.Now())
 
 	if err != nil {
 		return 0, err
