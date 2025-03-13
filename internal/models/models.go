@@ -21,6 +21,8 @@ type Widget struct {
 	Description    string `json:"description"`
 	Price          int    `json:"price"`
 	InventoryLevel int    `json:"inventory_level"`
+	IsRecurring    bool   `json:"is_recurring"`
+	PlanId         string `json:"plan_id"`
 	CreatedAt      string `json:"-"`
 	UpdatedAt      string `json:"-"`
 }
@@ -93,15 +95,15 @@ func (m *DBModel) GetWidget(id int) (Widget, error) {
 	row := m.DB.QueryRowContext(ctx, `
 		SELECT 
 			id, name, description, coalesce(image, ''),
-			inventory_level, price, created_at, 
-			updated_at 
+			inventory_level, price, is_recurring, plan_id, created_at, updated_at 
 		FROM widgets 
 		WHERE id = ?`, id)
 	widget := Widget{}
 
 	err := row.Scan(&widget.ID, &widget.Name,
 		&widget.Description, &widget.Image, &widget.InventoryLevel,
-		&widget.Price, &widget.CreatedAt, &widget.UpdatedAt)
+		&widget.Price, &widget.IsRecurring, &widget.PlanId,
+		&widget.CreatedAt, &widget.UpdatedAt)
 
 	return widget, err
 }

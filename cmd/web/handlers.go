@@ -193,7 +193,7 @@ func (app *application) VirtualTerminalPaymentSucceededHandler(w http.ResponseWr
 }
 
 func (app *application) VirtualTerminalReceiptHandler(w http.ResponseWriter, r *http.Request) {
-	txn := app.Session.Get(r.Context(), "receipt")
+	txn := app.Session.Get(r.Context(), "receipt").(TransactionData)
 	app.Session.Remove(r.Context(), "receipt")
 	data := map[string]any{
 		"txn": txn,
@@ -297,4 +297,24 @@ func (app *application) SaveOrder(widgetId, transactionId, customerId, amount in
 	}
 
 	return orderId, err
+}
+
+func (app *application) BronzePlanHandler(w http.ResponseWriter, r *http.Request) {
+	widget, err := app.DBModel.GetWidget(2)
+
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+
+	data := map[string]any{
+		"widget": widget,
+	}
+
+	err = app.renderTemplate(w, r, "bronze-plan", &templateData{
+		Data: data,
+	})
+
+	if err != nil {
+		app.errorLog.Println(err)
+	}
 }
