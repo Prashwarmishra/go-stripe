@@ -78,4 +78,121 @@
     <input type="hidden" name="payment-intent-currency" id="payment_intent_currency" />
 
   </form>
+
+  {{define "js"}}
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <script>
+      let stripe
+      let card
+      const cardMessages = document.getElementById("card_messages");
+      const payButton = document.getElementById("pay_button");
+      const paymentProcessing = document.getElementById("payment_processing");
+      const form = document.getElementById("charge_form");
+
+      stripe = Stripe("{{.StripeKey}}");
+
+      function hidePaymentButton() {
+        payButton.classList.add("d-none");
+        paymentProcessing.classList.remove("d-none");
+      }
+
+      function showPaymentButton() {
+        payButton.classList.remove("d-none");
+        paymentProcessing.classList.add("d-none");
+      }
+
+      function showCardError(errorMessage) {
+        cardMessages.classList.remove("d-none")
+        cardMessages.classList.remove("alert-success")
+        cardMessages.classList.add("alert-danger")
+        cardMessages.textContent = errorMessage
+      }
+
+      function showCardSuccess() {
+        cardMessages.classList.remove("d-none")
+        cardMessages.classList.add("alert-success")
+        cardMessages.classList.remove("alert-danger")
+        cardMessages.textContent = "Payment processed successfully!"
+      }
+
+      function val() {
+        form.classList.add("was-validated");
+        if (form.checkValidity() === false) {
+          this.event.preventDefault();
+          this.event.stopPropagation();
+          return;
+        }
+        hidePaymentButton()
+        stripe.createPaymentMethod({
+          type: "card",
+          card,
+          billing_details: {
+            email: document.getElementById("cardholder_email").value,
+          },
+        }).then(stripePaymentMethodHandler)
+      }
+
+      function stripePaymentMethodHandler(result) {
+        if (result.error) {
+          showCardError(result.error.message);
+        } else {
+          // create customer and subscribe to plan
+          const body = {
+            plan: {{$widget.PlanId}},
+            payment_method: result.paymentMethod.id,
+            email: document.getElementById("cardholder_email").value,
+            last_four: result.paymentMethod.card.last4,
+          };
+
+          const requestOptions = {
+            method: "post",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: json.stringify(body),
+          };
+
+          fetch("{{.API}}/api/create-customer-and-subscribe-to-plan", requestOptions)
+          .then((res) => res.json())
+          .then((res) => {
+            console.log("response", res);
+            paymentProcessing.classList.add("d-none")
+            // submit form
+          })
+        }
+      }
+
+      
+      (function() {
+        let elements = stripe.elements();
+
+        const style = {
+          base: {
+            fontSize: "16px",
+            lineHeight: "24px"
+          }
+        };
+
+        card = elements.create("card", {
+          style,
+          hidePostalCode: true
+        });
+
+        card.mount("#card-element");
+
+        card.addEventListener("change", function(event) {
+          const errorElement = document.getElementById("card-errors");
+          if (event.error) {
+            errorElement.classList.remove("d-none");
+            errorElement.textContent = event.error.message;
+          } else {
+            errorElement.classList.add("d-none");
+            errorElement.textContent = "";
+          }
+        }) 
+      })()
+    </script>
+  {{end}}
 {{end}}

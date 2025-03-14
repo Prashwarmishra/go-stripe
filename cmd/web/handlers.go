@@ -137,14 +137,12 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	orderId, err := app.SaveOrder(widgetId, transactionId, customerId, txnData.PaymentAmount)
+	_, err = app.SaveOrder(widgetId, transactionId, customerId, txnData.PaymentAmount)
 
 	if err != nil {
 		app.errorLog.Println(err)
 		return
 	}
-
-	app.infoLog.Println("orderId", orderId)
 
 	app.Session.Put(r.Context(), "receipt", txnData)
 	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
