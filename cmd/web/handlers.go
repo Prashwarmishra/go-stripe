@@ -123,7 +123,9 @@ func (app *application) PaymentSucceededHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	transactionId, err := app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth, txnData.ExpiryYear, txnData.PaymentIntent, txnData.PaymentMethod, txnData.Currency, txnData.LastFour, txnData.BankReturnCode)
+	transactionId, err := app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth,
+		txnData.ExpiryYear, txnData.Currency, txnData.LastFour,
+		txnData.BankReturnCode, txnData.PaymentIntent, txnData.PaymentMethod)
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -179,7 +181,9 @@ func (app *application) VirtualTerminalPaymentSucceededHandler(w http.ResponseWr
 		return
 	}
 
-	_, err = app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth, txnData.ExpiryYear, txnData.PaymentIntent, txnData.PaymentMethod, txnData.Currency, txnData.LastFour, txnData.BankReturnCode)
+	_, err = app.SaveTransaction(txnData.PaymentAmount, txnData.ExpiryMonth,
+		txnData.ExpiryYear, txnData.Currency, txnData.LastFour,
+		txnData.BankReturnCode, txnData.PaymentIntent, txnData.PaymentMethod)
 
 	if err != nil {
 		app.errorLog.Println(err)

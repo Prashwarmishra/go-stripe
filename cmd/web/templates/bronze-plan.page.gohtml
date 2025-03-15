@@ -139,12 +139,22 @@
       if (result.error) {
         showCardError(result.error.message);
       } else {
+      console.log("paymentMethod", result.paymentMethod);
+
         // create customer and subscribe to plan
         const body = {
+          amount: document.getElementById("amount").value,
+          currency: 'cad',
           plan: "{{$widget.PlanId}}",
           payment_method: result.paymentMethod.id,
           email: document.getElementById("cardholder_email").value,
+          first_name: document.getElementById("first_name").value,
+          last_name: document.getElementById("last_name").value,
+          expiry_month: result.paymentMethod.card.exp_month,
+          expiry_year: result.paymentMethod.card.exp_year,
+          card_type: result.paymentMethod.card.brand,
           last_four: result.paymentMethod.card.last4,
+          widget_id: document.getElementById("widget_id").value
         };
 
         const requestOptions = {
