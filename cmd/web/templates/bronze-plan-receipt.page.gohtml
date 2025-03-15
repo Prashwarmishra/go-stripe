@@ -1,0 +1,39 @@
+{{template "base" .}}
+
+{{define "title"}}
+  Subscription details
+{{end}}
+
+{{define "content"}}
+  <h2 class="mt-5 text-center">Subscription Successful</h2>
+  <hr />
+
+  <p>Cardholder name: <span id="first_name"></span> <span id="last_name"></span></p>
+  <p>Cardholder email: <span id="email"></span></p>
+  <p>Amount: <span id="amount"></span></p>
+  <p>Currency: <span id="currency"></span></p>
+  <p>Payment method: <span id="payment_method"></span></p>
+  <p>Card number: xxxx-xxxx-<span id="last_four"></span></p>
+  <p>Card expiry: <span id="expiry_month"></span>/<span id="expiry_year"></span></p>
+{{end}}
+
+{{define "js"}}
+  <script>
+    const stringifiedData = sessionStorage.getItem("payment_details");
+
+    if (stringifiedData) {
+      sessionStorage.removeItem("payment_details");
+      const data = JSON.parse(stringifiedData);
+
+      document.getElementById("first_name").innerHTML = data.first_name;
+      document.getElementById("last_name").innerHTML = data.last_name;
+      document.getElementById("email").innerHTML = data.email;
+      document.getElementById("amount").innerHTML = data.amount;
+      document.getElementById("currency").innerHTML = data.currency;
+      document.getElementById("payment_method").innerHTML = data.payment_method;
+      document.getElementById("last_four").innerHTML = data.last_four;
+      document.getElementById("expiry_month").innerHTML = data.expiry_month;
+      document.getElementById("expiry_year").innerHTML = data.expiry_year;
+    }
+  </script>
+{{end}}
