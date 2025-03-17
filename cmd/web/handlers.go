@@ -328,3 +328,11 @@ func (app *application) BronzePlanReceiptHandler(w http.ResponseWriter, r *http.
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	err := app.renderTemplate(w, r, "login", nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+}

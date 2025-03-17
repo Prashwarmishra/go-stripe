@@ -134,16 +134,17 @@ func (app *application) CreateCustomerAndSubscribeToPlan(w http.ResponseWriter, 
 		okay = false
 	}
 
-	subscriptionID, err := card.SubscribeToPlan(cust, stripePayload.Plan,
-		stripePayload.Email, stripePayload.LastFour, "")
+	if cust != nil {
+		_, err := card.SubscribeToPlan(cust, stripePayload.Plan,
+			stripePayload.Email, stripePayload.LastFour, stripePayload.CardType)
 
-	if err != nil {
-		app.errorLog.Print(err)
-		transactionMessage = "Failed to subscribe to plan"
-		okay = false
+		if err != nil {
+			app.errorLog.Print(err)
+			transactionMessage = "Failed to subscribe to plan"
+			okay = false
+		}
+
 	}
-
-	app.infoLog.Println("subscriptionID", subscriptionID)
 
 	res := jsonResponse{
 		OK:      okay,

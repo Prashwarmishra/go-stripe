@@ -1,0 +1,87 @@
+{{template "base" .}}
+
+{{define "title"}}
+  Login
+{{end}}
+
+{{define "content"}}
+  <h2 class="mt-3 text-center">Login</h2>
+
+  <hr />
+
+  <div class="alert alert-danger text-center d-none" id="card_messages"></div>
+  <form 
+    action="/" method="post" autocomplete="off"
+    name="login-form" id="login_form" 
+    class="d-block needs-validation charge-form"
+  >
+
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email" name="email" 
+        required="" autocomplete="email-new"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input 
+        type="password" class="form-control" id="password" name="password"
+        required="" autocomplete="password-new"
+      />
+    </div>
+
+    <hr/>
+
+    <a id="login_button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Login</a>
+
+    <div id="processing_button" class="d-none text-center">
+      <div class="spinner-border text-primary">
+        <span class="visually-hidden">loading...</span>
+      </div>
+    </div>
+  </form>
+{{end}}
+
+{{define "js"}}
+  <script>
+    const form = document.getElementById("login_form");
+    const loginButton = document.getElementById("login_button");
+    const processingButton = document.getElementById("processing_button")
+
+
+    function hideLoginButton() {
+      loginButton.classList.add("d-none");
+      processingButton.classList.remove("d-none");
+    }
+
+    function val() {
+      form.classList.add("was-validated");
+      if (form.checkValidity() === false) {
+        this.event.preventDefault();
+        this.event.stopPropagation();
+        return;
+      }
+      hideLoginButton()
+      const body = {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+      }
+
+      const requestOptions = {
+        method: "post",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      }
+
+      fetch("{{.API}}/api/authenticate", requestOptions)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("data", data);
+        })
+    }
+  </script>
+{{end}}

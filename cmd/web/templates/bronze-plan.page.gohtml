@@ -193,7 +193,7 @@
         hidePostalCode: true
       });
 
-      card.mount("#card-element");
+      card.mount(document.getElementById("card-element"));
 
       card.addEventListener("change", function(event) {
         const errorElement = document.getElementById("card-errors");
