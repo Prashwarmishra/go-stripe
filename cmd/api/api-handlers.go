@@ -261,3 +261,35 @@ func (app *application) SaveOrder(widgetId, transactionId, customerId, amount in
 
 	return orderId, err
 }
+
+func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &payload)
+
+	if err != nil {
+		app.badRequest(w, err)
+		return
+	}
+
+	var jsonResponse struct {
+		Okay    bool   `json:"okay"`
+		Message string `json:"message"`
+	}
+
+	jsonResponse.Okay = true
+	jsonResponse.Message = "success!"
+
+	data, err := json.MarshalIndent(jsonResponse, "", "\t")
+
+	if err != nil {
+		app.badRequest(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
+}
