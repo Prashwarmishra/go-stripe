@@ -7,6 +7,24 @@ import (
 	"net/http"
 )
 
+func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers ...http.Header) error {
+	res, err := json.MarshalIndent(data, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	for key, value := range headers[0] {
+		w.Header()[key] = value
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(res)
+
+	return nil
+}
+
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxBytes := 1048567
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))

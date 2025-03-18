@@ -272,6 +272,7 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		app.badRequest(w, err)
+		app.errorLog.Println(err)
 		return
 	}
 
@@ -287,9 +288,15 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		app.badRequest(w, err)
+		app.errorLog.Println(err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	err = app.writeJSON(w, http.StatusOK, data)
+
+	if err != nil {
+		app.badRequest(w, err)
+		app.errorLog.Println(err)
+		return
+	}
 }
