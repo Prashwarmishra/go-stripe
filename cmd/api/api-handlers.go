@@ -276,6 +276,22 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// get email from db
+	user, err := app.DBModel.GetUserDetailsByEmail(payload.Email)
+
+	if err != nil {
+		err = app.invalidCredentials(w)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+	app.infoLog.Println("user", user)
+
+	// compare password
+
+	// create credentials
+
 	var jsonResponse struct {
 		Okay    bool   `json:"okay"`
 		Message string `json:"message"`
@@ -284,19 +300,10 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	jsonResponse.Okay = true
 	jsonResponse.Message = "success!"
 
-	data, err := json.MarshalIndent(jsonResponse, "", "\t")
+	err = app.writeJSON(w, http.StatusOK, &jsonResponse)
 
 	if err != nil {
 		app.badRequest(w, err)
 		app.errorLog.Println(err)
-		return
-	}
-
-	err = app.writeJSON(w, http.StatusOK, data)
-
-	if err != nil {
-		app.badRequest(w, err)
-		app.errorLog.Println(err)
-		return
 	}
 }

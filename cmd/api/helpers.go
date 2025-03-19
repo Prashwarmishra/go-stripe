@@ -63,3 +63,25 @@ func (app *application) badRequest(w http.ResponseWriter, err error) error {
 	w.Write(data)
 	return nil
 }
+
+func (app *application) invalidCredentials(w http.ResponseWriter) error {
+	var response struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	response.Error = true
+	response.Message = "invalid credentials. pass correct email and password"
+
+	data, err := json.MarshalIndent(response, "", "\t")
+
+	if err != nil {
+		return err
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write(data)
+
+	return nil
+}
