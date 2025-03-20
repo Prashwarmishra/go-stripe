@@ -289,6 +289,15 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	app.infoLog.Println("user", user)
 
 	// compare password
+	isValid, err := app.validatePassword(user.Password, payload.Password)
+
+	if err != nil || !isValid {
+		err = app.invalidCredentials(w)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
 
 	// create credentials
 
