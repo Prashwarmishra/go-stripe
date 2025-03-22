@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -86,6 +87,28 @@ func (app *application) invalidCredentials(w http.ResponseWriter) error {
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
+	w.Write(data)
+
+	return nil
+}
+
+func (app *application) internalServerError(w http.ResponseWriter, err error) error {
+	var response struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	response.Error = true
+	response.Message = fmt.Sprintln("internal server error", err)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusInternalServerError)
+
+	data, err := json.MarshalIndent(response, "", "\t")
+
+	if err != nil {
+		return err
+	}
 	w.Write(data)
 
 	return nil

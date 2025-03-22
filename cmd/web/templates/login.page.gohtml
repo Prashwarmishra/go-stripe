@@ -58,6 +58,10 @@
       processingButton.classList.remove("d-none");
     }
 
+    function hideLoadingButton() {
+      processingButton.classList.add("d-none");
+    }
+
     function val() {
       form.classList.add("was-validated");
       if (form.checkValidity() === false) {
@@ -84,6 +88,7 @@
         .then((res) => res.json())
         .then((data) => {
           console.log("data", data);
+          hideLoadingButton()
         })
     }
   </script>

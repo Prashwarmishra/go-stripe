@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	cards "github.com/go-stripe/internal/cards"
@@ -300,14 +302,25 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// create credentials
+	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
+
+	if err != nil {
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
 
 	var jsonResponse struct {
-		Okay    bool   `json:"okay"`
-		Message string `json:"message"`
+		Okay    bool         `json:"okay"`
+		Message string       `json:"message"`
+		Token   models.Token `json:"authentication_token"`
 	}
 
 	jsonResponse.Okay = true
-	jsonResponse.Message = "success!"
+	jsonResponse.Message = fmt.Sprintf("auth token generated for %s", user.Email)
+	jsonResponse.Token = *token
 
 	err = app.writeJSON(w, http.StatusOK, &jsonResponse)
 
