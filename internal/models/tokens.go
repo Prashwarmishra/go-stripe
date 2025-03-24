@@ -44,10 +44,19 @@ func (m DBModel) InsertToken(user *User, token *Token) error {
 
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx,
-		`INSERT INTO tokens (
+	stmt := `DELETE FROM tokens WHERE user_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	stmt = `INSERT INTO tokens (
 			name, email, user_id, token_hash, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?)`
+
+	_, err = m.DB.ExecContext(ctx, stmt,
 		user.FirstName, user.Email, user.ID, token.Hash, time.Now(), time.Now(),
 	)
 
