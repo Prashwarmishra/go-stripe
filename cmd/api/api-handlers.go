@@ -312,6 +312,17 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// save token
+	err = app.DBModel.InsertToken(user, token)
+
+	if err != nil {
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
 	var jsonResponse struct {
 		Okay    bool         `json:"okay"`
 		Message string       `json:"message"`
