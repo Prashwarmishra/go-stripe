@@ -105,12 +105,12 @@
       fetch("{{.API}}/api/authenticate", requestOptions)
         .then((res) => res.json())
         .then((data) => {
-          console.log("data", data);
           if (data.okay) {
             localStorage.setItem("token", data.authentication_token.token);
             localStorage.setItem("token_expiry", data.authentication_token.expiry);
             showLoginSuccess();
             hideLoadingButton();
+            location.href = "/";
           } else {
             showLoginError(data.message)
             hideLoadingButton();
