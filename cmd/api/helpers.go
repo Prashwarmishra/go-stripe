@@ -58,16 +58,7 @@ func (app *application) badRequest(w http.ResponseWriter, err error) error {
 	response.Error = true
 	response.Message = err.Error()
 
-	data, err := json.MarshalIndent(response, "", "\t")
-
-	if err != nil {
-		return err
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(data)
-	w.WriteHeader(http.StatusBadRequest)
-	return nil
+	return app.writeJSON(w, http.StatusBadRequest, response)
 }
 
 func (app *application) invalidCredentials(w http.ResponseWriter) error {
@@ -79,17 +70,7 @@ func (app *application) invalidCredentials(w http.ResponseWriter) error {
 	response.Error = true
 	response.Message = "invalid credentials, input correct email and password"
 
-	data, err := json.MarshalIndent(response, "", "\t")
-
-	if err != nil {
-		return err
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
-	w.Write(data)
-
-	return nil
+	return app.writeJSON(w, http.StatusUnauthorized, response)
 }
 
 func (app *application) internalServerError(w http.ResponseWriter, err error) error {
@@ -101,17 +82,7 @@ func (app *application) internalServerError(w http.ResponseWriter, err error) er
 	response.Error = true
 	response.Message = fmt.Sprintln("internal server error", err)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
-
-	data, err := json.MarshalIndent(response, "", "\t")
-
-	if err != nil {
-		return err
-	}
-	w.Write(data)
-
-	return nil
+	return app.writeJSON(w, http.StatusInternalServerError, response)
 }
 
 func (app *application) validatePassword(hash, password string) (bool, error) {

@@ -74,6 +74,30 @@
           localStorage.removeItem("token_expiry")
           location.href = "/login"
         }
+
+        function checkAuth() {
+          const token = localStorage.getItem("token");
+
+          if (token) {
+            const requestOptions = {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              }
+            }
+
+            fetch("{{.API}}/api/is-authenticated", requestOptions)
+              .then((res) => res.json())
+              .then((res) => {
+                if (res.error) {
+                  handleLogout();
+                }
+              })
+          } else {
+            location.href = "/login";
+          }
+        }
       </script>
       {{block "js" .}}
       {{end}}

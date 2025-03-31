@@ -336,7 +336,28 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	err = app.writeJSON(w, http.StatusOK, &jsonResponse)
 
 	if err != nil {
-		app.badRequest(w, err)
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	var response struct {
+		Error bool `json:"error"`
+	}
+
+	response.Error = true
+
+	err := app.writeJSON(w, http.StatusOK, &response)
+
+	if err != nil {
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
 		app.errorLog.Println(err)
 	}
 }
