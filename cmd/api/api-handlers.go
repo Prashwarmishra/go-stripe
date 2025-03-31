@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -273,6 +275,7 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	err := app.readJSON(w, r, &payload)
 
 	if err != nil {
+		app.errorLog.Println(err)
 		app.badRequest(w, err)
 		app.errorLog.Println(err)
 		return
@@ -282,6 +285,7 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	user, err := app.DBModel.GetUserDetailsByEmail(payload.Email)
 
 	if err != nil {
+		app.errorLog.Println(err)
 		err = app.invalidCredentials(w)
 		if err != nil {
 			app.errorLog.Println(err)
@@ -294,6 +298,7 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	isValid, err := app.validatePassword(user.Password, payload.Password)
 
 	if err != nil || !isValid {
+		app.errorLog.Println(err)
 		err = app.invalidCredentials(w)
 		if err != nil {
 			app.errorLog.Println(err)
@@ -305,6 +310,7 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
 
 	if err != nil {
+		app.errorLog.Println(err)
 		err = app.internalServerError(w, err)
 		if err != nil {
 			app.errorLog.Println(err)
@@ -336,28 +342,70 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 	err = app.writeJSON(w, http.StatusOK, &jsonResponse)
 
 	if err != nil {
+		app.errorLog.Println(err)
 		err = app.internalServerError(w, err)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
-		app.errorLog.Println(err)
 	}
 }
 
-func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
-	var response struct {
-		Error bool `json:"error"`
+func (app *application) authenticateUser(r *http.Request) (*models.User, error) {
+	authorizationHeader := r.Header.Get("Authorization")
+
+	if authorizationHeader == "" {
+		return nil, errors.New("empty authorization passed in headers")
 	}
 
-	response.Error = true
+	headerParts := strings.Split(authorizationHeader, " ")
 
-	err := app.writeJSON(w, http.StatusOK, &response)
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		return nil, errors.New("invalid authorization token format")
+	}
+
+	token := headerParts[1]
+
+	if len(token) != 26 {
+		return nil, errors.New("invalid authorization token length")
+	}
+
+	user, err := app.DBModel.GetUserFromToken(token)
 
 	if err != nil {
+		app.errorLog.Println(err)
+		return nil, errors.New("no user mapped to this token")
+	}
+
+	return user, nil
+}
+
+func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticateUser(r)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.invalidCredentials(w)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	var response struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	response.Error = false
+	response.Message = fmt.Sprintf("authenticated user %s", user.Email)
+
+	err = app.writeJSON(w, http.StatusOK, &response)
+
+	if err != nil {
+		app.errorLog.Println(err)
 		err = app.internalServerError(w, err)
 		if err != nil {
 			app.errorLog.Println(err)
 		}
-		app.errorLog.Println(err)
 	}
 }
