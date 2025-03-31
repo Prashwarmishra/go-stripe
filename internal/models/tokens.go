@@ -53,12 +53,35 @@ func (m DBModel) InsertToken(user *User, token *Token) error {
 	}
 
 	stmt = `INSERT INTO tokens (
-			name, email, user_id, token_hash, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)`
+			name, email, user_id, token_hash, expiry, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = m.DB.ExecContext(ctx, stmt,
-		user.FirstName, user.Email, user.ID, token.Hash, time.Now(), time.Now(),
+		user.FirstName, user.Email, user.ID, token.Hash, token.Expiry, time.Now(), time.Now(),
 	)
 
 	return err
+}
+
+func (m *DBModel) GetUserFromToken(token string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	tokenHash := sha256.Sum256([]byte(token))
+
+	stmt := `SELECT u.ID, u.first_name, u.last_name, u.email
+					 FROM users u
+					 INNER JOIN tokens t ON (u.id = t.user_id)
+					 WHERE t.token_hash = ? AND t.expiry > ?`
+
+	user := User{}
+
+	err := m.DB.QueryRowContext(ctx, stmt, tokenHash[:], time.Now()).Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.Email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

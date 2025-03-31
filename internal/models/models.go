@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"strings"
 	"time"
@@ -211,28 +210,6 @@ func (m *DBModel) GetUserDetailsByEmail(email string) (*User, error) {
 	err := row.Scan(&user.ID, &user.FirstName,
 		&user.LastName, &user.Email, &user.Password,
 		&user.CreatedAt, &user.UpdatedAt)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-func (m *DBModel) GetUserFromToken(token string) (*User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	tokenHash := sha256.Sum256([]byte(token))
-
-	stmt := `SELECT u.ID, u.first_name, u.last_name, u.email
-					 FROM users u
-					 INNER JOIN tokens t ON (u.id = t.user_id)
-					 WHERE t.token_hash = ?`
-
-	user := User{}
-
-	err := m.DB.QueryRowContext(ctx, stmt, tokenHash[:]).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
 
 	if err != nil {
 		return nil, err
