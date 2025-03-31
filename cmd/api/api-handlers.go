@@ -409,3 +409,122 @@ func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Reque
 		}
 	}
 }
+
+func (app *application) VirtualTerminalPaymentSucceededHandler(w http.ResponseWriter, r *http.Request) {
+	type TransactionData struct {
+		FirstName       string `json:"first_name"`
+		LastName        string `json:"last_name"`
+		CardholderName  string `json:"cardholder_name"`
+		CardholderEmail string `json:"cardholder_email"`
+		PaymentAmount   int    `json:"payment_amount"`
+		Currency        string `json:"currency"`
+		PaymentIntent   string `json:"payment_intent"`
+		PaymentMethod   string `json:"payment_method"`
+		LastFour        string `json:"last_four"`
+		ExpiryMonth     int    `json:"expiry_month"`
+		ExpiryYear      int    `json:"expiry_year"`
+		BankReturnCode  string `json:"bank_return_code"`
+	}
+
+	transactionData := TransactionData{}
+
+	err := app.readJSON(w, r, &transactionData)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.badRequest(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	card := cards.Card{
+		Key:    app.config.stripe.key,
+		Secret: app.config.stripe.secret,
+	}
+
+	pm, err := card.GetPaymentMethod(transactionData.PaymentMethod)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.badRequest(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	pi, err := card.RetrievePaymentIntent(transactionData.PaymentIntent)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.badRequest(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	transactionData.LastFour = pm.Card.Last4
+	transactionData.ExpiryMonth = int(pm.Card.ExpMonth)
+	transactionData.ExpiryYear = int(pm.Card.ExpYear)
+	transactionData.BankReturnCode = pi.Charges.Data[0].ID
+
+	customerId, err := app.SaveCustomer(transactionData.FirstName,
+		transactionData.LastName, transactionData.CardholderEmail)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	transactionId, err := app.SaveTransaction(transactionData.PaymentAmount, transactionData.ExpiryMonth,
+		transactionData.ExpiryYear, transactionData.Currency, transactionData.LastFour,
+		transactionData.BankReturnCode, transactionData.PaymentIntent, transactionData.PaymentMethod)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	_, err = app.SaveOrder(1, transactionId, customerId, transactionData.PaymentAmount)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+
+	var response struct {
+		Error           bool            `json:"error"`
+		Message         string          `json:"message"`
+		TransactionData TransactionData `json:"transaction_data"`
+	}
+
+	response.Error = false
+	response.Message = "transaction successful"
+	response.TransactionData = transactionData
+
+	err = app.writeJSON(w, http.StatusOK, response)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		err = app.internalServerError(w, err)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+		return
+	}
+}

@@ -33,7 +33,7 @@ func (app *application) HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) VirtualTerminalHandler(w http.ResponseWriter, r *http.Request) {
-	err := app.renderTemplate(w, r, "terminal", nil, "stripe-js")
+	err := app.renderTemplate(w, r, "terminal", nil)
 
 	if err != nil {
 		app.errorLog.Println(err)
