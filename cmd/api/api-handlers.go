@@ -333,11 +333,13 @@ func (app *application) AuthenticationHandler(w http.ResponseWriter, r *http.Req
 		Okay    bool         `json:"okay"`
 		Message string       `json:"message"`
 		Token   models.Token `json:"authentication_token"`
+		UserID  int          `json:"user_id"`
 	}
 
 	jsonResponse.Okay = true
 	jsonResponse.Message = fmt.Sprintf("auth token generated for %s", user.Email)
 	jsonResponse.Token = *token
+	jsonResponse.UserID = user.ID
 
 	err = app.writeJSON(w, http.StatusOK, &jsonResponse)
 

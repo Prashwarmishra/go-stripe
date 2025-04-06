@@ -12,7 +12,7 @@
 
       <div class="alert alert-danger text-center d-none" id="login_messages"></div>
       <form 
-        action="/" method="post" autocomplete="off"
+        action="/login" method="post" autocomplete="off"
         name="login-form" id="login_form" 
         class="d-block needs-validation charge-form"
       >
@@ -31,6 +31,8 @@
             required="" autocomplete="password-new"
           />
         </div>
+
+        <input type="hidden" class="form-control" id="user_id" name="user-id" />
 
         <hr/>
 
@@ -87,7 +89,9 @@
         this.event.stopPropagation();
         return;
       }
+      
       hideLoginButton()
+
       const body = {
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
@@ -108,9 +112,10 @@
           if (data.okay) {
             localStorage.setItem("token", data.authentication_token.token);
             localStorage.setItem("token_expiry", data.authentication_token.expiry);
+            document.getElementById("user_id").value = data.user_id;
             showLoginSuccess();
             hideLoadingButton();
-            location.href = "/";
+            form.submit()
           } else {
             showLoginError(data.message)
             hideLoadingButton();

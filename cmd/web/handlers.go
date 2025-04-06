@@ -336,3 +336,26 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) PostLoginHandler(w http.ResponseWriter, r *http.Request) {
+	app.Session.RenewToken(r.Context())
+	err := r.ParseForm()
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	userIdString := r.Form.Get("user-id")
+
+	userId, err := strconv.Atoi(userIdString)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	app.Session.Put(r.Context(), "userID", userId)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
