@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-stripe/internal/driver"
 	"github.com/go-stripe/internal/models"
@@ -72,16 +73,12 @@ func main() {
 	cfg.stripe.key = "pk_test_51QqX3TLNGyaF79S2XZ6vSEspSBCJDZ3A5NLkjTAQdMgePTXe7JEcyLGkinfbXDr1RvWGrOeRza7nYrymnm4zrDwA004QGGj7sT"
 	cfg.stripe.secret = "sk_test_51QqX3TLNGyaF79S20fYOTYJRUcghafnpPpiz7zfmyoYafFuh9lf1ufIBRBLxda0DyYaTdALCeY5ESmDl59pg8zkH00ReJa86RT"
 
-	session = *scs.New()
-	session.Lifetime = 24 * time.Hour
-
 	app := &application{
 		config:        cfg,
 		infoLog:       *log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime),
 		errorLog:      *log.New(os.Stdout, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile),
 		templateCache: make(map[string]*template.Template),
 		version:       version,
-		Session:       &session,
 	}
 
 	dbConnection, err := driver.OpenDB(app.config.db.dsn)
@@ -96,6 +93,12 @@ func main() {
 	}
 
 	defer dbConnection.Close()
+
+	session = *scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Store = mysqlstore.New(dbConnection)
+
+	app.Session = &session
 
 	err = app.serve()
 

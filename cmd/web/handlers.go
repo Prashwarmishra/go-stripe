@@ -359,3 +359,9 @@ func (app *application) PostLoginHandler(w http.ResponseWriter, r *http.Request)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func (app *application) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	app.Session.Destroy(r.Context())
+	app.Session.RenewToken(r.Context())
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
